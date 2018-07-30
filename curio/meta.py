@@ -13,19 +13,18 @@ __all__ = [
 
 # -- Standard Library
 
-from sys import _getframe
-import sys
-import inspect
-from functools import wraps, partial
-from abc import ABCMeta, abstractmethod
 import dis
-import asyncio
+import inspect
+import sys
 import threading
+from abc import ABCMeta
 from contextlib import contextmanager
-
-# -- Curio
+from functools import wraps, partial
+from sys import _getframe
 
 from .errors import SyncIOError
+
+# -- Curio
 
 
 _locals = threading.local()

@@ -20,14 +20,16 @@ __all__ = ['Event', 'UniversalEvent', 'Lock', 'RLock', 'Semaphore', 'BoundedSema
 
 import threading
 
+from . import thread
+from . import workers
+from .meta import awaitable, iscoroutinefunction
+from .sched import SchedFIFO, SchedBarrier
+from .task import current_task
+from .traps import _scheduler_wait, _scheduler_wake
+
+
 # -- Curio
 
-from .traps import _scheduler_wait, _scheduler_wake
-from .sched import SchedFIFO, SchedBarrier
-from . import workers
-from .task import current_task
-from .meta import awaitable, iscoroutinefunction
-from . import thread
 
 class Event(object):
 
@@ -55,13 +57,15 @@ class Event(object):
         self._set = True
         await _scheduler_wake(self._waiting, len(self._waiting))
 
+
 class UniversalEvent(object):
     '''
     An event that's safe to use from Curio and threads.
     '''
+
     def __init__(self):
         self._evt = threading.Event()
-        
+
     def is_set(self):
         return self._evt.is_set()
 
@@ -82,6 +86,7 @@ class UniversalEvent(object):
     async def set(self):
         self._evt.set()
 
+
 # Base class for all synchronization primitives that operate as context managers.
 
 class _LockBase(object):
@@ -98,6 +103,7 @@ class _LockBase(object):
 
     def __exit__(self, *args):
         return thread.AWAIT(self.__aexit__(*args))
+
 
 class Lock(_LockBase):
 
@@ -274,6 +280,7 @@ class _contextadapt_basic(object):
     async def __aexit__(self, *args):
         return await workers.run_in_thread(self._manager.__exit__, *args)
 
+
 # Adapt a synchronous context-manager to an asynchronous manager, but
 # with a reserved backing thread (the same thread is used for the
 # duration of the context manager)
@@ -299,9 +306,11 @@ class _contextadapt_reserve(object):
         if callable(item):
             async def call(*args, **kwargs):
                 return await self._worker.apply(item, args, kwargs)
+
             return call
         else:
             return item
+
 
 def abide(op, *args, reserve_thread=False):
     '''

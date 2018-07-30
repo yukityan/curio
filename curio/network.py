@@ -4,12 +4,13 @@
 # based on their similar counterparts in the asyncio library. Some of the
 # fiddly low-level bits are borrowed.
 
-__all__ = [ 'open_connection', 'tcp_server', 'tcp_server_socket',
-            'open_unix_connection', 'unix_server', 'unix_server_socket' ]
+__all__ = ['open_connection', 'tcp_server', 'tcp_server_socket',
+           'open_unix_connection', 'unix_server', 'unix_server_socket']
 
 # -- Standard library
 
 import logging
+
 log = logging.getLogger(__name__)
 
 # -- Curio
@@ -59,6 +60,7 @@ async def _wrap_ssl_client(sock, ssl, server_hostname, alpn_protocols):
         await sock.do_handshake()
     return sock
 
+
 async def open_connection(host, port, *, ssl=None, source_addr=None, server_hostname=None,
                           alpn_protocols=None):
     '''
@@ -79,6 +81,7 @@ async def open_connection(host, port, *, ssl=None, source_addr=None, server_host
         sock._socket.close()
         raise
 
+
 async def open_unix_connection(path, *, ssl=None, server_hostname=None,
                                alpn_protocols=None):
     if server_hostname and not ssl:
@@ -96,6 +99,7 @@ async def open_unix_connection(path, *, ssl=None, server_hostname=None,
     except Exception:
         sock._socket.close()
         raise
+
 
 async def run_server(sock, client_connected_task, ssl=None):
     if ssl and not hasattr(ssl, 'wrap_socket'):
@@ -126,9 +130,9 @@ async def run_server(sock, client_connected_task, ssl=None):
                 task._joined = True
                 del task
 
+
 def tcp_server_socket(host, port, family=socket.AF_INET, backlog=100,
                       reuse_address=True, reuse_port=False):
-
     sock = socket.socket(family, socket.SOCK_STREAM)
     try:
         if reuse_address:
@@ -148,12 +152,13 @@ def tcp_server_socket(host, port, family=socket.AF_INET, backlog=100,
 
     return sock
 
+
 async def tcp_server(host, port, client_connected_task, *,
                      family=socket.AF_INET, backlog=100, ssl=None,
                      reuse_address=True, reuse_port=False):
-
     sock = tcp_server_socket(host, port, family, backlog, reuse_address, reuse_port)
     await run_server(sock, client_connected_task, ssl)
+
 
 def unix_server_socket(path, backlog=100):
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -164,7 +169,8 @@ def unix_server_socket(path, backlog=100):
         sock._socket.close()
         raise
     return sock
-    
+
+
 async def unix_server(path, client_connected_task, *, backlog=100, ssl=None):
     sock = unix_server_socket(path, backlog)
     await run_server(sock, client_connected_task, ssl)

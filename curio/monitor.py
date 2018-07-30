@@ -67,6 +67,7 @@ log = logging.getLogger(__name__)
 MONITOR_HOST = '127.0.0.1'
 MONITOR_PORT = 48802
 
+
 class Monitor(object):
     '''
     Task monitor that runs concurrently to the curio kernel in a
@@ -77,7 +78,7 @@ class Monitor(object):
         self.kernel = kern
         self.address = (host, port)
         self.monitor_queue = queue.UniversalQueue()
-                                               
+
         log.info('Starting Curio monitor at %s:%d', host, port)
 
         # The monitor launches both a separate thread and helper task

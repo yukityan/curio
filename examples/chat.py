@@ -3,19 +3,23 @@ from curio import run, spawn, SignalQueue, TaskGroup, Queue, tcp_server, Cancell
 from curio.socket import *
 
 import logging
+
 log = logging.getLogger(__name__)
 
 messages = Queue()
 subscribers = set()
+
 
 async def dispatcher():
     async for msg in messages:
         for q in subscribers:
             await q.put(msg)
 
+
 async def publish(msg, local):
     log.info('%r published %r', local['address'], msg)
     await messages.put(msg)
+
 
 async def outgoing(client_stream):
     queue = Queue()
@@ -26,6 +30,7 @@ async def outgoing(client_stream):
     finally:
         subscribers.discard(queue)
 
+
 async def incoming(client_stream, name, local):
     try:
         async for line in client_stream:
@@ -34,9 +39,10 @@ async def incoming(client_stream, name, local):
         await client_stream.write(b'SERVER IS GOING DOWN!\n')
         raise
 
+
 async def chat_handler(client, addr):
-    log.info('Connection from %r', addr) 
-    local = { 'address': addr }
+    log.info('Connection from %r', addr)
+    local = {'address': addr}
     async with client:
         client_stream = client.as_stream()
         await client_stream.write(b'Your name: ')
@@ -51,10 +57,12 @@ async def chat_handler(client, addr):
 
     log.info('%r connection closed', addr)
 
+
 async def chat_server(host, port):
     async with TaskGroup() as g:
         await g.spawn(dispatcher)
         await g.spawn(tcp_server, host, port, chat_handler)
+
 
 async def main(host, port):
     async with SignalQueue(signal.SIGHUP) as restart:
@@ -64,6 +72,7 @@ async def main(host, port):
             await restart.get()
             log.info('Server shutting down')
             await serv_task.cancel()
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

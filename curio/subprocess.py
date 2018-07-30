@@ -9,9 +9,8 @@ __all__ = ['run', 'Popen', 'CompletedProcess', 'CalledProcessError',
 
 # -- Standard Library
 
-import subprocess
 import os
-
+import subprocess
 from subprocess import (
     CompletedProcess,
     SubprocessError,
@@ -21,13 +20,15 @@ from subprocess import (
     DEVNULL,
 )
 
-# -- Curio
-
-from .task import spawn, sleep
+from . import thread
 from .errors import CancelledError
 from .io import FileStream
-from . import thread
+from .task import spawn
 from .workers import run_in_thread
+
+
+# -- Curio
+
 
 class Popen(object):
     '''

@@ -48,6 +48,7 @@
 import heapq
 from math import log2
 
+
 class TimeQueue:
     def __init__(self, timeslice=1.0):
         self.near_deadline = 0.0
@@ -55,8 +56,8 @@ class TimeQueue:
         self.near = []
 
         # Set of buckets for timeouts occurring 4, 16, 64s, 256s, etc. in the future (from deadline)
-        self.far = [ {} for _ in range(8) ]
-        self.far_deadlines = [self.near_deadline] + [self.near_deadline + 4 ** n for n in range(1,8) ]
+        self.far = [{} for _ in range(8)]
+        self.far_deadlines = [self.near_deadline] + [self.near_deadline + 4 ** n for n in range(1, 8)]
 
     def _advance(self, deadline):
         # Sets a new near deadline and adjusts the buckets if necessary
@@ -92,7 +93,7 @@ class TimeQueue:
                 # Otherwise, we move on to reprocess its contents as well.
                 if bucketno < 8 and self.far_deadlines[bucketno] > bucket_deadline:
                     break
-                bucket_deadline = deadline + 4**bucketno
+                bucket_deadline = deadline + 4 ** bucketno
             else:
                 break
 
@@ -129,7 +130,7 @@ class TimeQueue:
         # Otherwise, the item gets dropped into a bucket for future processing
         else:
             delta = expires - self.near_deadline
-            bucketno = 0 if delta < 4.0 else int(0.5*log2(delta))
+            bucketno = 0 if delta < 4.0 else int(0.5 * log2(delta))
             if bucketno > 7:
                 bucketno = 7
             self.far[bucketno][item] = expires
@@ -140,7 +141,7 @@ class TimeQueue:
         '''
         if deadline >= self.near_deadline:
             self._advance(deadline)
-            
+
         near = self.near
         while near and near[0][0] < deadline:
             yield heapq.heappop(near)
@@ -156,7 +157,7 @@ class TimeQueue:
             return
         delta = expires - self.near_deadline
         if delta >= 0:
-            bucketno = 0 if delta < 4.0 else int(0.5*log2(delta))
+            bucketno = 0 if delta < 4.0 else int(0.5 * log2(delta))
             if bucketno > 7:
                 bucketno = 7
             while bucketno < 8 and self.far_deadlines[bucketno] <= expires:

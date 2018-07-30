@@ -10,12 +10,12 @@
 # File, objects, etc.).
 # ----------------------------------------------------------------------
 
-__all__ = [ 
+__all__ = [
     '_read_wait', '_write_wait', '_future_wait', '_sleep', '_spawn',
     '_cancel_task', '_scheduler_wait', '_scheduler_wake',
     '_get_kernel', '_get_current', '_set_timeout', '_unset_timeout',
     '_clock',
-    ]
+]
 
 # -- Standard library
 
@@ -26,6 +26,7 @@ from enum import IntEnum
 # -- Curio
 
 from . import errors
+
 
 class Traps(IntEnum):
     _trap_io = 0

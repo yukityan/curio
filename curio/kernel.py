@@ -41,17 +41,17 @@
 # the required traps.
 
 
-__all__ = ['Kernel', 'run' ]
+__all__ = ['Kernel', 'run']
 
 # -- Standard Library
 
-import socket
-import time
-import os
 import errno
 import logging
-from selectors import DefaultSelector, EVENT_READ, EVENT_WRITE
+import os
+import socket
+import time
 from collections import deque
+from selectors import DefaultSelector, EVENT_READ, EVENT_WRITE
 
 # Logger where uncaught exceptions from crashed tasks are logged
 log = logging.getLogger(__name__)
@@ -65,6 +65,7 @@ from . import meta
 from .debug import _create_debuggers
 from .timequeue import TimeQueue
 from .activation import Activation
+
 
 # ----------------------------------------------------------------------
 # Underlying kernel that drives everything
@@ -94,7 +95,7 @@ class Kernel(object):
 
         # Ready queue and task table
         self._ready = deque()
-        self._tasks = {}                  
+        self._tasks = {}
 
         # Coroutine runner
         self._runner = None
@@ -112,7 +113,7 @@ class Kernel(object):
 
         # Activations
         self._activations = activations if activations else []
-        
+
         # Debugging (activations in disguise)
         if debug:
             self._activations.extend(_create_debuggers(debug))
@@ -126,12 +127,11 @@ class Kernel(object):
         return self
 
     def __exit__(self, ty, val, tb):
-        if not ty or ty in { KeyboardInterrupt, SystemExit }:
+        if not ty or ty in {KeyboardInterrupt, SystemExit}:
             self.run(shutdown=True)
 
     def _call_at_shutdown(self, func):
         self._shutdown_funcs.append(func)
-
 
     # ----------
     # Submit a new task to the kernel
@@ -202,12 +202,12 @@ class Kernel(object):
         # Motto:  "What happens in the kernel stays in the kernel"
 
         # ---- Kernel State
-        current = None                          # Currently running task
-        selector = kernel._selector             # Event selector
-        ready = kernel._ready                   # Ready queue
-        tasks = kernel._tasks                   # Task table
-        sleepq = kernel._sleepq                 # Sleeping task queue
-        wake_queue = kernel._wake_queue         # External wake queue
+        current = None  # Currently running task
+        selector = kernel._selector  # Event selector
+        ready = kernel._ready  # Ready queue
+        tasks = kernel._tasks  # Task table
+        sleepq = kernel._sleepq  # Sleeping task queue
+        wake_queue = kernel._wake_queue  # External wake queue
         _activations = []
 
         # ---- Bound methods
@@ -303,7 +303,7 @@ class Kernel(object):
             nonlocal current
             current.state = state
             current.cancel_func = cancel_func
-            
+
             # Unregister previous I/O request. Discussion follows:
             #
             # When a task performs I/O, it registers itself with the underlying
@@ -358,7 +358,8 @@ class Kernel(object):
                 if event == EVENT_READ and rtask:
                     raise ReadResourceBusy("Multiple tasks can't wait to read on the same file descriptor %r" % fileobj)
                 if event == EVENT_WRITE and wtask:
-                    raise WriteResourceBusy("Multiple tasks can't wait to write on the same file descriptor %r" % fileobj)
+                    raise WriteResourceBusy(
+                        "Multiple tasks can't wait to write on the same file descriptor %r" % fileobj)
 
                 selector_modify(fileobj, mask | event,
                                 (task, wtask) if event == EVENT_READ else (rtask, task))
@@ -446,7 +447,7 @@ class Kernel(object):
 
             _suspend_task('FUTURE_WAIT',
                           lambda task=current:
-                              setattr(task, 'future', future.cancel() and None))
+                          setattr(task, 'future', future.cancel() and None))
 
         # ----------------------------------------
         # Add a new task to the kernel
@@ -535,7 +536,7 @@ class Kernel(object):
             if not absolute:
                 clock += time_monotonic()
             _set_timeout(clock, 'sleep')
-            _suspend_task('TIME_SLEEP', 
+            _suspend_task('TIME_SLEEP',
                           lambda task=current: setattr(task, 'sleep', None))
 
         # ----------------------------------------
@@ -616,8 +617,8 @@ class Kernel(object):
                 task._last_io = None
 
         # Initialize activations
-        _activations = [ act() if (isinstance(act, type) and issubclass(act, Activation)) else act
-                         for act in kernel._activations ]
+        _activations = [act() if (isinstance(act, type) and issubclass(act, Activation)) else act
+                        for act in kernel._activations]
         kernel._activations = _activations
 
         for act in _activations:
@@ -653,7 +654,7 @@ class Kernel(object):
                 timeout = sleepq.next_deadline(current_time)
             try:
                 events = selector_select(timeout)
-            except OSError as e:     # pragma: no cover
+            except OSError as e:  # pragma: no cover
                 # If there is nothing to select, windows throws an
                 # OSError, so just set events to an empty list.
                 if e.errno != getattr(errno, 'WSAEINVAL', None):
@@ -696,7 +697,6 @@ class Kernel(object):
                         selector_modify(key.fileobj, mask, (rtask, wtask))
                     else:
                         selector_unregister(key.fileobj)
-
 
             # ------------------------------------------------------------
             # Time handling (sleep/timeouts
@@ -754,7 +754,7 @@ class Kernel(object):
                         except Exception as e:
                             current.next_exc = e
 
-                    
+
                 # If any exception is raised during coroutine execution, the
                 # task is terminated.   Set the final return code and break out
                 except BaseException as e:
@@ -765,7 +765,7 @@ class Kernel(object):
                     active.state = 'TERMINATED'
                     del tasks[active.id]
                     active.timeout = None
-                    
+
                     if isinstance(e, StopIteration):
                         active.next_value = e.value
                         active.next_exc = None
@@ -776,7 +776,7 @@ class Kernel(object):
                             log.error('Task Crash: %r', active, exc_info=True)
                         if not isinstance(e, Exception):
                             raise
-                
+
                 finally:
                     # Some tricky task/thread interactions require knowing when
                     # a coroutine has suspended. If suspend_func has been set, 
@@ -797,6 +797,7 @@ class Kernel(object):
                             a.terminated(active)
                     current = active = None
 
+
 def run(corofunc, *args, with_monitor=False, selector=None,
         debug=None, activations=None, **extra):
     '''
@@ -815,9 +816,8 @@ def run(corofunc, *args, with_monitor=False, selector=None,
     kernel = Kernel(selector=selector, debug=debug, activations=activations,
                     **extra)
 
-
     # Check if a monitor has been requested
-    if with_monitor or 'CURIOMONITOR' in os.environ:   # pragma: no cover
+    if with_monitor or 'CURIOMONITOR' in os.environ:  # pragma: no cover
         from .monitor import Monitor
         m = Monitor(kernel)
         kernel._call_at_shutdown(m.close)

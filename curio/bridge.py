@@ -4,22 +4,22 @@
 # The curio->asyncio bridge runs a separate asyncio event loop in a different thread,
 # which has coroutines submitted to it over the course of the kernel's lifetime.
 
-__all__ = [ 'AsyncioLoop', 'asyncio_coroutine' ]
+__all__ = ['AsyncioLoop', 'asyncio_coroutine']
 
 # -- Standard library
 
 import asyncio
 import functools
-import inspect
 import threading
 
-# -- Curio
-
-from .traps import _future_wait
-from .sync import Event
+from . import meta
 from . import task
 from . import workers
-from . import meta
+from .sync import Event
+from .traps import _future_wait
+
+
+# -- Curio
 
 
 class AsyncioLoop(object):
@@ -28,12 +28,12 @@ class AsyncioLoop(object):
     to be submitted to asyncio and executed in a backrgound thread.   Only
     one method is provided, run_asyncio().
     '''
-    
+
     def __init__(self, event_loop=None):
         self.loop = event_loop if event_loop else asyncio.new_event_loop()
         self._thread = None
         self._shutdown = Event()
-        
+
     def _asyncio_thread(self):
         asyncio.set_event_loop(self.loop)
         self.loop.run_forever()
@@ -60,13 +60,13 @@ class AsyncioLoop(object):
             await task.spawn(self._asyncio_task, daemon=True)
 
         coro = meta.instantiate_coroutine(corofunc, *args)
-        fut  = asyncio.run_coroutine_threadsafe(coro, self.loop)
+        fut = asyncio.run_coroutine_threadsafe(coro, self.loop)
         await _future_wait(fut)
         return fut.result()
 
     async def shutdown(self):
         await self._shutdown.set()
-        
+
     async def __aenter__(self):
         return self
 
@@ -79,6 +79,7 @@ def asyncio_coroutine(loop):
     Marks a coroutine as an asyncio coroutine. This will run it inside the specified loop
     automatically.
     '''
+
     def inner(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):

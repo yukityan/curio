@@ -2,6 +2,7 @@ from .sync import Event
 
 __all__ = ['Promise']
 
+
 class Promise:
     def __init__(self):
         self._event = Event()

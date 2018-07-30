@@ -14,9 +14,11 @@ try:
 except ImportError:
     _ssl = None
 
+
     # We need these exceptions defined, even if ssl is not available.
     class SSLWantReadError(Exception):
         pass
+
 
     class SSLWantWriteError(Exception):
         pass
@@ -39,9 +41,11 @@ if _ssl:
             await cssl_sock.do_handshake()
         return cssl_sock
 
+
     @wraps(_ssl.get_server_certificate)
     async def get_server_certificate(*args, **kwargs):
         return await run_in_thread(partial(_ssl.get_server_certificate, *args, **kwargs))
+
 
     # Small wrapper class to make sure the wrap_socket() method returns the right type
     class CurioSSLContext(object):
@@ -67,9 +71,11 @@ if _ssl:
             else:
                 setattr(self._context, name, value)
 
+
     # Name alias
     def SSLContext(protocol):
         return CurioSSLContext(_ssl.SSLContext(protocol))
+
 
     @wraps(_ssl.create_default_context)
     def create_default_context(*args, **kwargs):

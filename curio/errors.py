@@ -35,10 +35,12 @@ class GroupExit(TaskCancelled):
     all tasks in its task group.
     '''
 
+
 class TaskExit(TaskCancelled):
     '''
     Exception that can be raised to directly cancel itself.
     '''
+
 
 class TimeoutCancellationError(CancelledError):
     '''
@@ -52,12 +54,14 @@ class TaskTimeout(CancelledError):
     Exception raised if task is cancelled due to timeout.
     '''
 
+
 class TaskInterrupted(CancelledError):
     '''
     Raised if the current operation is interrupted for some
     reason. It's implied that the task would catch this and
     retry the operation.
     '''
+
 
 class UncaughtTimeoutError(CurioError):
     '''
@@ -74,22 +78,25 @@ class TaskError(CurioError):
     occurred in the task.
     '''
 
+
 class TaskGroupError(CurioError):
     '''
     Raised if one or more tasks in a task group raised an error.
     The .failed attribute contains a list of all tasks that died.
     The .errors attribute contains a set of all exceptions raised.
     '''
+
     def __init__(self, failed):
         self.args = (failed,)
         self.failed = failed
-        self.errors = { type(task.next_exc) for task in failed }
+        self.errors = {type(task.next_exc) for task in failed}
 
     def __str__(self):
         return 'TaskGroupError(%s)' % ', '.join(err.__name__ for err in self.errors)
 
     def __iter__(self):
         return self.failed.__iter__()
+
 
 class SyncIOError(CurioError):
     '''
@@ -112,11 +119,14 @@ class ResourceBusy(CurioError):
     on behalf of another task.
     '''
 
+
 class ReadResourceBusy(ResourceBusy):
     pass
 
+
 class WriteResourceBusy(ResourceBusy):
     pass
+
 
 class KernelExit(BaseException):
     '''

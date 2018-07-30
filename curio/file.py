@@ -46,11 +46,13 @@ __all__ = ['aopen', 'anext']
 from contextlib import contextmanager
 from functools import partial
 
+from . import thread
+from .errors import SyncIOError
+from .workers import run_in_thread
+
+
 # -- Curio
 
-from .workers import run_in_thread
-from .errors import SyncIOError
-from . import thread
 
 class AsyncFile(object):
     '''
@@ -159,6 +161,7 @@ def aopen(*args, **kwargs):
     blocking I/O operations must be awaited.
     '''
     return AsyncFile(None, args, kwargs)
+
 
 async def anext(f, sentinel=object):
     '''

@@ -12,7 +12,8 @@
 from abc import ABC, abstractmethod
 from collections import deque
 
-class SchedBase(ABC):     # pragma: no cover
+
+class SchedBase(ABC):  # pragma: no cover
 
     @abstractmethod
     def __len__(self):
@@ -41,7 +42,6 @@ class SchedFIFO(SchedBase):
         self._queue = deque()
         self._actual_len = 0
 
-
     def __len__(self):
         return self._actual_len
 
@@ -56,6 +56,7 @@ class SchedFIFO(SchedBase):
         def remove():
             item[0] = None
             self._actual_len -= 1
+
         return remove
 
     def pop(self, ntasks=1):

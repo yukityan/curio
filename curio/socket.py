@@ -31,10 +31,11 @@ def socketpair(*args, **kwargs):
 def fromfd(*args, **kwargs):
     return io.Socket(_socket.fromfd(*args, **kwargs))
 
+
 # Replacements for blocking functions related to domain names and DNS
 
-#@wraps(_socket.create_connection)
-#async def create_connection(*args, **kwargs):
+# @wraps(_socket.create_connection)
+# async def create_connection(*args, **kwargs):
 #    sock = await workers.run_in_thread(partial(_socket.create_connection, *args, **kwargs))
 #    return io.Socket(sock)
 
@@ -65,6 +66,7 @@ async def create_connection(address, timeout=None, source_address=None):
         raise err
     else:
         raise error("getaddrinfo returns an empty list")
+
 
 @wraps(_socket.getaddrinfo)
 async def getaddrinfo(*args, **kwargs):

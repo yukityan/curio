@@ -4,20 +4,20 @@
 
 # -- Standard library
 
-from collections import deque
-from heapq import heappush, heappop
-from concurrent.futures import Future
-import threading
-import socket as std_socket
 import asyncio
+import socket as std_socket
+import threading
+from collections import deque
+from concurrent.futures import Future
+from heapq import heappush, heappop
+
+from . import workers
+from .errors import CancelledError
+from .meta import awaitable, asyncioable, sync_only
+from .sched import SchedFIFO
+from .traps import _scheduler_wait, _scheduler_wake, _future_wait
 
 # -- Curio
-
-from .traps import _scheduler_wait, _scheduler_wake, _future_wait
-from .sched import SchedFIFO
-from .errors import CurioError, CancelledError
-from .meta import awaitable, asyncioable, sync_only
-from . import workers
 
 __all__ = ['Queue', 'PriorityQueue', 'LifoQueue', 'UniversalQueue']
 
@@ -213,7 +213,7 @@ class UniversalQueue(object):
             except BlockingIOError:
                 pass
         self._put_notify()
-            
+
     def _get(self):
         fut = item = None
         with self._mutex:
@@ -339,7 +339,7 @@ class UniversalQueue(object):
         with self._all_tasks_done:
             while self._unfinished_tasks:
                 self._all_tasks_done.wait()
-    
+
     @awaitable(join_sync)
     async def join(self):
         await workers.block_in_thread(self.join_sync)

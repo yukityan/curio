@@ -6,20 +6,21 @@ __all__ = ['SignalQueue', 'SignalEvent', 'enable_signals']
 
 # -- Standard Library
 
-import signal
-import threading
-from collections import defaultdict, Counter
-import socket
-from contextlib import contextmanager
-import weakref
-
 import logging
+import signal
+import socket
+import threading
+import weakref
+from collections import defaultdict, Counter
+from contextlib import contextmanager
+
 log = logging.getLogger(__name__)
 
 # -- Curio
 
 from .queue import UniversalQueue
 from . import sync
+
 
 # Discussion:  Signal handling.
 #
@@ -57,7 +58,7 @@ from . import sync
 class _SignalHandler(object):
     _signal_queues = defaultdict(set)
     _watching = Counter()
-    _default_handlers = { }
+    _default_handlers = {}
     _event_handlers = defaultdict(list)
     _lock = threading.Lock()
     _initialized = False
@@ -127,7 +128,8 @@ class _SignalHandler(object):
                 if isinstance(queue_or_evt, UniversalQueue):
                     cls._signal_queues[signo].discard(queue_or_evt)
                 elif isinstance(queue_or_evt, SignalEvent):
-                    cls._event_handlers[signo] = [ evt for evt in cls._event_handlers[signo] if evt() ]
+                    cls._event_handlers[signo] = [evt for evt in cls._event_handlers[signo] if evt()]
+
 
 class SignalQueue(UniversalQueue):
     '''
@@ -140,7 +142,7 @@ class SignalQueue(UniversalQueue):
         super().__init__(**kwargs)
         self._signos = signos
         self._watching = False
-        
+
     def __enter__(self):
         assert not self._watching
         _SignalHandler._init_queuing()
@@ -162,13 +164,14 @@ class SignalQueue(UniversalQueue):
     async def __aexit__(self, *args):
         return self.__exit__(*args)
 
+
 class SignalEvent(sync.UniversalEvent):
     def __init__(self, *signos):
         super().__init__()
         self._signos = signos
         _SignalHandler.watch(signos, self)
         _SignalHandler._init_queuing()
-             
+
     def __del__(self):
         try:
             _SignalHandler.unwatch(self._signos, self)
@@ -176,6 +179,7 @@ class SignalEvent(sync.UniversalEvent):
             # For reasons unclear, calling signal() with valid arguments during
             # interpreter shutdown can cause a spurious TypeError. We ignore it
             pass
+
 
 @contextmanager
 def enable_signals(signos):
@@ -192,6 +196,7 @@ def enable_signals(signos):
         yield
     finally:
         _SignalHandler.unwatch(signos, None)
+
 
 @contextmanager
 def ignore_signals(signos):

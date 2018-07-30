@@ -6,3 +6,4 @@ venv*
 benchmarks/curio/
 benchmarks/env/
 benchmarks/results/
+.idea/
